@@ -5,13 +5,12 @@ require("data.table")
 require("rpart")
 require("parallel")
 require("primes")
-require("ggplot2")
 
 
 PARAM <- list()
 # reemplazar por las propias semillas
-PARAM$semilla_primigenia <- 102191
-PARAM$qsemillas <- 10000
+PARAM$semilla_primigenia <- 737287
+PARAM$qsemillas <- 100
 
 # elegir SU dataset comentando/ descomentando
 PARAM$dataset_nom <- "~/datasets/vivencial_dataset_pequeno.csv"
@@ -115,9 +114,6 @@ dataset <- fread(PARAM$dataset_nom)
 # trabajo solo con los datos con clase, es decir 202107
 dataset <- dataset[clase_ternaria != ""]
 
-dir.create("~/buckets/b1/exp/EX2330", showWarnings = FALSE)
-setwd("~/buckets/b1/exp/EX2330")
-
 
 # la funcion mcmapply  llama a la funcion ArbolEstimarGanancia
 #  tantas veces como valores tenga el vector  PARAM$semillas
@@ -135,51 +131,9 @@ salidas
 # paso la lista a vector
 tb_salida <- rbindlist(salidas)
 
-fwrite( tb_salida,
-        "tb_salida.txt",
-        sep ="\t" )
 
-
-
-# grafico densidades
-media <- tb_salida[ , mean( ganancia_test) ]
-cuantiles  <-  quantile(  tb_salida[,  ganancia_test ],
-   prob= c(0.05, 0.5, 0.95),
-   na.rm=TRUE )
-
-grafico <- ggplot( tb_salida, aes(x=ganancia_test)) + geom_density(alpha=0.25)  +
-  geom_vline(xintercept=media, linewidth=1, color="red") +
-  geom_vline(xintercept=cuantiles[1], linewidth=0.5, color="blue") +
-  geom_vline(xintercept=cuantiles[2], linewidth=0.5, color="blue") +
-  geom_vline(xintercept=cuantiles[3], linewidth=0.5, color="blue")
-
-pdf("densidad.pdf")
-print(grafico)
-dev.off()
-
-# desvios estandar
-tb_final <- data.table(
-    grupo_size=integer(),
-    grupos=integer(),
-    gan_media=numeric(),
-    gan_sd=numeric()
-)
-
-cant <-  nrow( tb_salida )
-for( q in  c(1,2,4, 8, 16, 32, 64, 128 ) )
+for( i in seq(10, 100, 10) )
 {
-  i <- 1
-  grupos <- 0
-  vgan <- c()
-  while(  i+q-1 <= cant )
-  {
-    gan <- tb_salida[ i:(i+q-1) , mean( ganancia_test) ]
-    vgan <-  c( vgan, gan )
-    i <- i + q
-    grupos <-  grupos + 1
-  }
-  
-  tb_final <- rbindlist( list( tb_final, list( q, grupos, mean(vgan), sd(vgan) ) ) )
+  cat( i, "\t", tb_salida[ 1:i, mean(ganancia_test)], "\n" )
 }
 
-print( tb_final )
