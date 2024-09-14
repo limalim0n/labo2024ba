@@ -107,3 +107,4 @@ if( ! file.exists( miAmbiente$dataset_competencia ) )
 #------------------
 
 cat("\n\n  Ambiente verificado, todo se encuentra bien. No tema.\n\n" )
+
